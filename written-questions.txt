@@ -1,0 +1,64 @@
+Written Questions
+
+Q1. Run the web crawler using the configurations located at src/main/config/written_question_1a.json and
+    src/main/config/written_question_1b.json. The only difference between these configurations is that one always uses
+    the sequential crawler and the other always uses the parallel crawler. Inspect the profile output in
+    profileData.txt.
+
+    If you are using a multi-processor computer, you should notice that SequentialWebCrawler#crawl and
+    ParallelWebCrawler#crawl took about the same amount of time, but PageParserImpl#parse took much longer when run with
+    the ParallelWebCrawler.
+
+    Why did the parser take more time when run with ParallelWebCrawler?
+    The result is shown below.
+    com.udacity.webcrawler.SequentialWebCrawler#crawl took 0m 22s 330ms
+    com.udacity.webcrawler.parser.PageParserImpl#parse took 0m 22s 244ms
+    {"wordCounts":{"udacity":261,"your":178,"with":161,"read":136,"medium":133},"urlsVisited":19}
+    com.udacity.webcrawler.ParallelWebCrawler#crawl took 0m 22s 668ms
+    com.udacity.webcrawler.parser.PageParserImpl#parse took 2m 32s 399ms
+    {"wordCounts":{"your":2443,"data":2141,"with":1928,"udacity":1805,"program":1753},"urlsVisited":134}
+    I set the "timeOutSecond" both 20s, so the SequentialWebCrawler#crawl and ParallelWebCrawler#crawl took about
+    the same amount of time. But ParallelWebCrawler#crawl have more threads at the same time, so they need to parser
+    more url, that is the reason they took much longer.
+
+
+Q2. Your manager ran your crawler on her old personal computer, using the configurations from Q1, and she notices that
+    the sequential crawler actually outperforms the parallel crawler. She would like to know why.
+
+    (a) Suggest one reason why the sequential web crawler was able to read more web pages than the parallel crawler.
+        (Hint: Try setting "parallelism" to 1 in the JSON configs to simulate your manager's computer.)
+        Manager's computer is single-core and single-thread Architecture. ParallelWebCrawler need a extra ForkJoinPool
+        to execute the task.
+
+    (b) Suggest one scenario in which the parallel web crawler will almost certainly perform better than the sequential
+        crawler. Why will it perform better?
+        When you use a multiple-core and multiple-thread computer to run the crawler and set the "parallelism" larger
+        than 1. Because our crawler program can be parallelized, and we use ForkJoinPool to manage the threads.
+        ForkJoinPool uses work stealing so that idle worker threads can find work to do, its API is optimized for
+        asynchronous work that creates more work.
+
+Q3. Analyze your method profiler through the lens of Aspect Oriented Programming, by answering the following questions:
+
+    (a) What cross-cutting concern is being addressed by the com.udacity.webcrawler.profiler.Profiler class?
+    It address the concern of recording performance data of certain class with Annotation profiler.
+    (b) What are the join points of the Profiler in the web crawler program?
+    The method with the Profiler annotation is the join points of the Profiler.
+
+Q4. Identify three (3) different design patterns used in this project, and explain which interfaces, classes, and/or
+    libraries use or implement those design patterns.
+
+    For each pattern, name one thing about the pattern that you LIKED, and one thing you DISLIKED. If you did not like
+    anything, you can name two things you disliked.
+
+    Dependency Injection: WebCrawlerMain class, PageParserFactoryImpl class, ProfilerImpl class, ParallelWebCrawler
+    class. DI will help us manage and organize dependencies in our class. While the code will be a bit longer.
+
+
+    Builder: CrawlerConfiguration class, CrawlResult class, PageParser interface, ParserModule class apply builder patttern.
+    Builder pattern could use to create immutable objects. And when constructor has many parameters, the builder pattern
+    is usually a good choice. However, it needs more code and seems redundant when the mount of parameters is only one or two.
+
+    Proxy: ProfilerImpl class. Proxy could be reused and easy to change without changing the original code. But dynamic
+    proxy could be too complex to understand.
+
+
